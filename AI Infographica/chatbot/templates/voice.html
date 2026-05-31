@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Assistant - AI Chatbot</title>
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Marked.js for markdown parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Animated background particles */
+    body::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+      animation: float 15s ease-in-out infinite;
+      z-index: 0;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+
+    .chat-wrapper {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 900px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+      animation: slideIn 0.5s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .chat-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 25px 30px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chat-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: rotate 20s linear infinite;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .chat-header h1 {
+      margin: 0;
+      font-size: 2rem;
+      font-weight: 700;
+      position: relative;
+      z-index: 1;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .chat-container {
+      flex: 1;
+      padding: 25px;
+      overflow-y: auto;
+      max-height: 500px;
+      background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .chat-box {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .user-msg, .bot-msg, .system-msg {
+      padding: 15px 20px;
+      border-radius: 18px;
+      max-width: 80%;
+      word-wrap: break-word;
+      animation: messageSlide 0.3s ease-out;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    @keyframes messageSlide {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .user-msg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .bot-msg {
+      background: white;
+      color: #333;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+      border: 2px solid #e9ecef;
+    }
+
+    .bot-msg b {
+      color: #667eea;
+      font-size: 1.1em;
+    }
+
+    .system-msg {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      align-self: center;
+      font-size: 0.9em;
+      max-width: 60%;
+      text-align: center;
+    }
+
+    /* Thinking indicator */
+    .thinking-indicator {
+      display: none;
+      padding: 15px 20px;
+      border-radius: 18px;
+      background: white;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+      border: 2px solid #e9ecef;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      animation: messageSlide 0.3s ease-out;
+    }
+
+    .thinking-indicator.active {
+      display: block;
+    }
+
+    .thinking-dots {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .thinking-dots span {
+      color: #667eea;
+      font-weight: bold;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      background: #667eea;
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .dot:nth-child(1) { animation-delay: -0.32s; }
+    .dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { 
+        transform: scale(0);
+        opacity: 0.5;
+      }
+      40% { 
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .chat-footer {
+      background: white;
+      padding: 20px 25px;
+      border-top: 2px solid #e9ecef;
+      box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .select-lang {
+      padding: 12px 18px;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      background: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    .select-lang:hover, .select-lang:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .start-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .start-btn:hover {
+      background: linear-gradient(135deg, #5568d3 0%, #65408b 100%);
+    }
+
+    .start-btn.listening {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+      }
+      50% {
+        box-shadow: 0 4px 25px rgba(240, 147, 251, 0.8);
+      }
+    }
+
+    .stop-btn {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+
+    .stop-btn:hover {
+      background: linear-gradient(135deg, #df82ea 0%, #e4465b 100%);
+    }
+
+    .back-btn {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      color: #333;
+    }
+
+    .back-btn:hover {
+      background: linear-gradient(135deg, #97dcd9 0%, #edc5d2 100%);
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .chat-header h1 {
+        font-size: 1.5rem;
+      }
+
+      .controls {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .btn, .select-lang {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .user-msg, .bot-msg {
+        max-width: 90%;
+      }
+    }
+
+    /* Scrollbar styling */
+    .chat-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .chat-container::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    .chat-container::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 10px;
+    }
+
+    .chat-container::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #5568d3 0%, #65408b 100%);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="chat-wrapper">
+    <header class="chat-header">
+      <h1><i class="fas fa-microphone-alt"></i> Voice Assistant Mode</h1>
+    </header>
+
+    <main class="chat-container">
+      <div id="chat-box" class="chat-box">
+        <!-- Thinking indicator -->
+        <div class="thinking-indicator" id="thinking-indicator">
+          <div class="thinking-dots">
+            <span>AI is thinking</span>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="chat-footer">
+      <div class="controls">
+        <!-- Language selection -->
+        <select id="language-select" class="select-lang">
+          <option value="english" selected>🇬🇧 English</option>
+          <option value="kannada">🇮🇳 Kannada</option>
+        </select>
+
+        <!-- Buttons -->
+        <button id="start-voice" class="btn start-btn">
+          <i class="fas fa-microphone"></i> Start Talking
+        </button>
+        <button id="stop-voice" class="btn stop-btn">
+          <i class="fas fa-stop"></i> Stop
+        </button>
+        <a href="/index">
+          <button class="btn"><i class="fas fa-comments"></i> Online Chat</button>
+        </a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    const chatBox = document.getElementById("chat-box");
+    const startBtn = document.getElementById("start-voice");
+    const stopBtn = document.getElementById("stop-voice");
+    const thinkingIndicator = document.getElementById("thinking-indicator");
+
+    let recognition;
+    let isListening = false;
+    let isProcessing = false;
+    let isSpeaking = false;
+
+    // Show thinking indicator
+    function showThinking() {
+      thinkingIndicator.classList.add('active');
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Hide thinking indicator
+    function hideThinking() {
+      thinkingIndicator.classList.remove('active');
+    }
+
+    if ("webkitSpeechRecognition" in window) {
+      recognition = new webkitSpeechRecognition();
+      recognition.continuous = false; // Stop automatically after user stops
+      recognition.interimResults = false;
+
+      // Start voice listening
+      startBtn.addEventListener("click", () => {
+        if (!isListening) {
+          isListening = true;
+          startBtn.innerHTML = '<i class="fas fa-microphone"></i> Listening...';
+          startBtn.classList.add('listening');
+          startRecognition();
+        }
+      });
+
+      // Stop voice listening
+      stopBtn.addEventListener("click", () => {
+        isListening = false;
+        isSpeaking = false;
+        startBtn.innerHTML = '<i class="fas fa-microphone"></i> Start Talking';
+        startBtn.classList.remove('listening');
+        recognition.stop();
+        speechSynthesis.cancel();
+        hideThinking();
+        
+        const systemMsg = document.createElement('div');
+        systemMsg.className = 'system-msg';
+        systemMsg.innerHTML = '<i class="fas fa-stop-circle"></i> Conversation stopped.';
+        chatBox.appendChild(systemMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+
+      // Start recognition function
+      function startRecognition() {
+        if (!isListening || isSpeaking || isProcessing) return;
+        let language = document.getElementById("language-select").value;
+        recognition.lang = (language === "kannada") ? "kn-IN" : "en-US";
+        recognition.start();
+      }
+
+      // When speech is recognized
+      recognition.onresult = async (event) => {
+        const transcript = event.results[0][0].transcript.trim();
+        if (!transcript || isProcessing) return;
+
+        const userMsg = document.createElement('div');
+        userMsg.className = 'user-msg';
+        userMsg.innerHTML = `<i class="fas fa-user"></i> ${transcript}`;
+        chatBox.appendChild(userMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        isProcessing = true;
+        showThinking(); // Show thinking indicator
+        
+        let language = document.getElementById("language-select").value;
+
+        try {
+          const response = await fetch("/voice", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: transcript, language })
+          });
+
+          const data = await response.json();
+          hideThinking(); // Hide thinking indicator
+          
+          const htmlReply = marked.parse(data.reply);
+          const botMsg = document.createElement('div');
+          botMsg.className = 'bot-msg';
+          botMsg.innerHTML = `<i class="fas fa-robot"></i> <b>Bot:</b> ${htmlReply}`;
+          chatBox.appendChild(botMsg);
+          chatBox.scrollTop = chatBox.scrollHeight;
+
+          // Speak reply
+          isSpeaking = true;
+          await speakBotReply(data.reply, language);
+
+          isProcessing = false;
+          isSpeaking = false;
+
+          // Restart listening automatically
+          if (isListening) setTimeout(startRecognition, 700);
+
+        } catch (err) {
+          console.error("Voice fetch error:", err);
+          hideThinking();
+          
+          const errorMsg = document.createElement('div');
+          errorMsg.className = 'system-msg';
+          errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error processing your request';
+          chatBox.appendChild(errorMsg);
+          chatBox.scrollTop = chatBox.scrollHeight;
+          
+          isProcessing = false;
+        }
+      };
+
+      // Handle recognition errors
+      recognition.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        hideThinking();
+        if (isListening && !isSpeaking && !isProcessing) {
+          setTimeout(startRecognition, 1000);
+        }
+      };
+
+      // Restart if ended accidentally
+      recognition.onend = () => {
+        if (isListening && !isProcessing && !isSpeaking) {
+          setTimeout(startRecognition, 700);
+        }
+      };
+
+      // Function to handle text-to-speech output
+      async function speakBotReply(reply, language) {
+        const cleanText = reply
+          .replace(/\*/g, " ")
+          .replace(/#/g, "")
+          .replace(/[-+]/g, " ")
+          .replace(/\n+/g, ". ");
+
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = (language === "kannada") ? "kn-IN" : "en-US";
+
+        return new Promise((resolve) => {
+          utterance.onend = resolve;
+          speechSynthesis.speak(utterance);
+        });
+      }
+
+    } else {
+      alert("Speech Recognition is not supported in this browser. Please use Chrome.");
+    }
+  </script>
+
+</body>
+
+</html>

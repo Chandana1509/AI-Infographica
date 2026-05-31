@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ollama Chatbot</title>
+  <style>
+    body { font-family: Arial; background: #f4f4f4; }
+    #chatbox { width: 400px; margin: 50px auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 0 10px #aaa; }
+    #messages { height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+    .user { color: blue; margin: 5px 0; }
+    .bot { color: green; margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <div id="chatbox">
+    <h3>Chat with Ollama</h3>
+    <div id="messages"></div>
+    <input type="text" id="input" placeholder="Type a message..." style="width:80%;">
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById("input");
+      const messages = document.getElementById("messages");
+      const userMsg = input.value;
+
+      messages.innerHTML += `<div class='user'>You: ${userMsg}</div>`;
+      input.value = "";
+
+      const res = await fetch("/ollama_chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMsg })
+      });
+
+      const data = await res.json();
+      messages.innerHTML += `<div class='bot'>Bot: ${data.reply}</div>`;
+      messages.scrollTop = messages.scrollHeight;
+    }
+  </script>
+</body>
+</html>

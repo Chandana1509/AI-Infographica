@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart AI Chatbot - Inphotograpic AI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #6366f1;
+      --primary-soft: rgba(99, 102, 241, 0.15);
+      --primary-dark: #4f46e5;
+      --accent: #22c55e;
+      --accent-soft: rgba(34, 197, 94, 0.16);
+      --danger: #f97373;
+
+      --bg-main: radial-gradient(circle at top left, #1e293b 0, #020617 40%, #020617 100%);
+      --bg-elevated: rgba(15, 23, 42, 0.9);
+      --bg-elevated-soft: rgba(15, 23, 42, 0.7);
+      --sidebar-bg: linear-gradient(180deg, #020617 0%, #020617 40%, #111827 100%);
+      --sidebar-border: rgba(148, 163, 184, 0.2);
+
+      --glass-border: rgba(148, 163, 184, 0.35);
+      --glass-bg: rgba(15, 23, 42, 0.85);
+
+      --text-primary: #e5e7eb;
+      --text-muted: #9ca3af;
+      --text-soft: #6b7280;
+
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.9);
+      --shadow-chip: 0 10px 30px rgba(15, 23, 42, 0.8);
+      --radius-lg: 22px;
+      --radius-md: 14px;
+      --radius-pill: 999px;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .app-container {
+      display: flex;
+      height: 100vh;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 16px;
+      gap: 16px;
+    }
+
+    /* Sidebar */
+
+    .sidebar {
+      width: 260px;
+      background: var(--sidebar-bg);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--sidebar-border);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      padding: 18px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sidebar::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(circle at top, rgba(99, 102, 241, 0.25), transparent 55%),
+        radial-gradient(circle at bottom, rgba(56, 189, 248, 0.18), transparent 55%);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .sidebar>* {
+      position: relative;
+      z-index: 1;
+    }
+
+    .new-chat-btn {
+      background: radial-gradient(circle at top left, #4f46e5 0%, #22c55e 100%);
+      color: white;
+      border: none;
+      padding: 11px 16px;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 14px 35px rgba(129, 140, 248, 0.5);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+    }
+
+    .new-chat-btn i {
+      font-size: 0.95rem;
+    }
+
+    .new-chat-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      box-shadow: 0 18px 45px rgba(129, 140, 248, 0.65);
+    }
+
+    .sidebar h3 {
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sidebar h3 i {
+      font-size: 0.8rem;
+      color: var(--accent);
+    }
+
+    .sessions-list {
+      margin-top: 4px;
+      overflow-y: auto;
+      flex: 1;
+      padding-right: 4px;
+    }
+
+    .sessions-list::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .sessions-list::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.5);
+      border-radius: 999px;
+    }
+
+    .session-item {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      padding: 9px 10px;
+      border-radius: 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.18s ease;
+    }
+
+    .session-item::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: transparent;
+      margin-right: 8px;
+    }
+
+    .session-item:hover {
+      border-color: var(--primary);
+      background: rgba(15, 23, 42, 0.98);
+      color: var(--text-primary);
+      transform: translateY(-1px);
+    }
+
+    .session-item.active {
+      background: var(--primary-soft);
+      border-color: var(--primary);
+      color: var(--text-primary);
+      box-shadow: var(--shadow-chip);
+    }
+
+    /* Main content */
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .header {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--glass-border);
+      padding: 16px 22px;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header i.fa-robot {
+      color: var(--accent);
+      font-size: 1.5rem;
+      padding: 9px;
+      border-radius: 16px;
+      background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.25), rgba(15, 23, 42, 0.9));
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.3);
+      animation: floatPulse 3.5s ease-in-out infinite;
+    }
+
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .header-title-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .header h1 .gradient-text {
+      background: linear-gradient(120deg, #a855f7 0%, #6366f1 50%, #22c55e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+
+    .header-pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      font-size: 0.73rem;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .header-pill i {
+      font-size: 0.7rem;
+      color: var(--accent);
+    }
+
+    .chat-container {
+      flex: 1;
+      background: var(--bg-elevated-soft);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(22px);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chat-box {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 8px;
+      padding-bottom: 6px;
+      scroll-behavior: smooth;
+    }
+
+    .chat-box::-webkit-scrollbar {
+      width: 7px;
+    }
+
+    .chat-box::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 999px;
+    }
+
+    .chat-box::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #6366f1, #22c55e);
+      border-radius: 999px;
+    }
+
+    .message-wrapper {
+      margin-bottom: 14px;
+      animation: fadeInUp 0.25s ease-out;
+    }
+
+    .message {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .message.user {
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.8);
+    }
+
+    .avatar.user-avatar {
+      background: radial-gradient(circle at top left, #6366f1 0%, #22c55e 100%);
+      color: white;
+    }
+
+    .avatar.bot-avatar {
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: var(--accent);
+    }
+
+    .message-content {
+      max-width: 70%;
+      padding: 11px 14px;
+      border-radius: 16px;
+      line-height: 1.6;
+      font-size: 0.9rem;
+      position: relative;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .message.user .message-content {
+      background: linear-gradient(120deg, rgba(99, 102, 241, 0.95), rgba(129, 140, 248, 0.9));
+      color: #eef2ff;
+      box-shadow: 0 16px 35px rgba(129, 140, 248, 0.6);
+      text-align: left;
+      border-color: transparent;
+    }
+
+    .message.bot .message-content {
+      background: rgba(15, 23, 42, 0.98);
+      border-radius: 16px;
+    }
+
+    .message-content p {
+      margin-bottom: 0.45rem;
+    }
+
+    .message-content p:last-child {
+      margin-bottom: 0;
+    }
+
+    .file-badge {
+      font-size: 0.75rem;
+      margin-top: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-muted);
+      border: 1px dashed rgba(148, 163, 184, 0.5);
+    }
+
+    .file-badge::before {
+      content: "↗";
+      font-size: 0.7rem;
+      opacity: 0.7;
+    }
+
+    .thinking-indicator {
+      display: none;
+      margin-bottom: 16px;
+    }
+
+    .thinking-indicator.active {
+      display: block;
+      animation: fadeInUp 0.25s ease-out;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 5px;
+      padding: 9px 12px;
+      background: rgba(15, 23, 42, 0.98);
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      width: fit-content;
+    }
+
+    .typing-dots span {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: typingDots 1.2s infinite;
+    }
+
+    .typing-dots span:nth-child(2) {
+      animation-delay: 0.12s;
+    }
+
+    .typing-dots span:nth-child(3) {
+      animation-delay: 0.24s;
+    }
+
+    .bot-actions {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-left: 44px;
+    }
+
+    .action-btn {
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      color: var(--text-primary);
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.9);
+    }
+
+    .action-btn i {
+      font-size: 0.8rem;
+      opacity: 0.85;
+    }
+
+    .action-btn:hover {
+      background: var(--primary-soft);
+      border-color: var(--primary);
+      transform: translateY(-1px);
+      box-shadow: 0 12px 28px rgba(129, 140, 248, 0.7);
+    }
+
+    .chart-options {
+      margin-top: 10px;
+      margin-left: 44px;
+      padding: 12px 12px;
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+    }
+
+    .chart-options select,
+    .chart-options input {
+      background: rgba(15, 23, 42, 0.98);
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      color: var(--text-primary);
+      padding: 7px 10px;
+      border-radius: 9px;
+      font-size: 0.8rem;
+      outline: none;
+    }
+
+    .chart-options input::placeholder {
+      color: var(--text-soft);
+    }
+
+    .chart-display {
+      margin-top: 10px;
+      margin-left: 44px;
+      padding: 14px 14px;
+      background: rgba(15, 23, 42, 0.98);
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      animation: fadeInUp 0.25s ease-out;
+      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.9);
+    }
+
+    .chart-display img {
+      width: 100%;
+      max-width: 640px;
+      display: block;
+      margin: 0 auto;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    .footer {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--glass-border);
+      padding: 12px 16px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: nowrap;
+    }
+
+    .select-lang {
+      background: rgba(15, 23, 42, 0.98);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: var(--text-primary);
+      padding: 9px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 130px;
+    }
+
+    .file-upload-wrapper {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.98);
+      border: 1px dashed rgba(148, 163, 184, 0.7);
+      border-radius: 999px;
+      padding: 7px 11px;
+      cursor: pointer;
+      transition: all 0.18s;
+      font-size: 0.8rem;
+      max-width: 180px;
+      white-space: nowrap;
+    }
+
+    .file-upload-wrapper:hover {
+      border-style: solid;
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .plus-icon {
+      width: 26px;
+      height: 26px;
+      background: radial-gradient(circle at top left, #22c55e 0%, #6366f1 100%);
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: bold;
+      transition: transform 0.25s ease;
+      color: #ecfdf5;
+      box-shadow: 0 8px 22px rgba(34, 197, 94, 0.7);
+      flex-shrink: 0;
+    }
+
+    .file-upload-wrapper:hover .plus-icon {
+      transform: rotate(90deg) scale(1.03);
+    }
+
+    .file-name {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-input {
+      flex: 1;
+      min-width: 120px;
+      background: rgba(15, 23, 42, 0.98);
+      border: 1px solid rgba(148, 163, 184, 0.65);
+      color: var(--text-primary);
+      padding: 9px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+    }
+
+    .user-input::placeholder {
+      color: var(--text-soft);
+    }
+
+    .user-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.5);
+    }
+
+    .btn {
+      padding: 9px 13px;
+      border-radius: 999px;
+      border: none;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .btn i {
+      font-size: 0.85rem;
+    }
+
+    .send-btn {
+      background: linear-gradient(120deg, #6366f1, #22c55e);
+      color: white;
+      box-shadow: 0 12px 32px rgba(79, 70, 229, 0.85);
+    }
+
+    .send-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 40px rgba(79, 70, 229, 1);
+    }
+
+    .secondary-btn {
+      background: rgba(15, 23, 42, 0.98);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: var(--text-primary);
+    }
+
+    .secondary-btn:hover {
+      background: rgba(15, 23, 42, 1);
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .mermaid {
+      background: rgba(15, 23, 42, 0.98);
+      padding: 16px;
+      border-radius: 14px;
+      margin-top: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes typingDots {
+
+      0%,
+      60%,
+      100% {
+        transform: translateY(0);
+        opacity: 0.5;
+      }
+
+      30% {
+        transform: translateY(-4px);
+        opacity: 1;
+      }
+    }
+
+    @keyframes floatPulse {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-2px) scale(1.02);
+      }
+    }
+
+    @media (max-width: 980px) {
+      .app-container {
+        padding: 10px;
+        height: auto;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .main-content {
+        width: 100%;
+      }
+
+      .message-content {
+        max-width: 85%;
+      }
+
+      .chart-display,
+      .chart-options,
+      .bot-actions {
+        margin-left: 40px;
+      }
+
+      .controls {
+        flex-wrap: wrap;
+      }
+
+      .user-input {
+        order: 2;
+        flex-basis: 100%;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+
+      .select-lang,
+      .file-upload-wrapper,
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .user-input {
+        width: 100%;
+      }
+
+      .brain-game-widget {
+        right: 12px;
+        bottom: 130px;
+      }
+    }
+
+    /* ===========================
+       BRAIN GAME WIDGET (NEW)
+    ============================ */
+
+    .brain-game-widget {
+      position: fixed;
+      right: 20px;
+      bottom: 110px; /* lifted above footer buttons */
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .brain-game-toggle {
+      background: linear-gradient(120deg, #22c55e, #6366f1);
+      color: #f9fafb;
+      border: none;
+      border-radius: 999px;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.7);
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .brain-game-toggle span {
+      font-size: 1.1rem;
+    }
+
+    .brain-game-toggle:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 32px rgba(15, 23, 42, 0.9);
+    }
+
+    .brain-game-panel {
+      width: 280px;
+      max-width: 90vw;
+      background: rgba(15, 23, 42, 0.98);
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.95);
+      padding: 10px 12px 12px;
+      backdrop-filter: blur(20px);
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .brain-game-panel.active {
+      display: flex;
+    }
+
+    .game-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .game-header-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .game-header-title i {
+      color: #22c55e;
+    }
+
+    .game-close-btn {
+      background: transparent;
+      border: none;
+      color: #9ca3af;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 999px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .game-close-btn:hover {
+      background: rgba(148, 163, 184, 0.2);
+      color: #e5e7eb;
+    }
+
+    .game-body {
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    #game-question {
+      font-size: 0.82rem;
+      color: #e5e7eb;
+      line-height: 1.45;
+    }
+
+    .game-options {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .game-option-btn {
+      width: 100%;
+      text-align: left;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 1);
+      color: #e5e7eb;
+      padding: 6px 10px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+    }
+
+    .game-option-btn:hover {
+      background: rgba(30, 64, 175, 0.55);
+      border-color: #6366f1;
+      transform: translateY(-1px);
+    }
+
+    .game-option-btn.selected {
+      background: rgba(79, 70, 229, 0.9);
+      border-color: #c4b5fd;
+    }
+
+    .game-main-btn {
+      margin-top: 4px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(120deg, #6366f1, #22c55e);
+      color: #f9fafb;
+      padding: 7px 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.9);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .game-main-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 1);
+    }
+
+    .game-feedback {
+      margin-top: 3px;
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+
+    .game-feedback.correct {
+      color: #4ade80;
+    }
+
+    .game-feedback.wrong {
+      color: #f97373;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <button class="new-chat-btn" onclick="newChat()">
+        <i class="fas fa-plus"></i> New Chat
+      </button>
+      <h3>
+        <i class="fas fa-clock"></i> Past Chats
+      </h3>
+      <div id="sessions-list" class="sessions-list"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-left">
+          <i class="fas fa-robot"></i>
+          <div>
+            <h1>
+              <span class="header-title-row">
+                <span class="gradient-text">Infographica AI</span>
+              </span>
+            </h1>
+            <div class="header-subtitle">
+              Turn your notes, files & data into summaries, flowcharts, and smart visuals.
+            </div>
+          </div>
+        </div>
+        <div class="header-pill">
+          <i class="fas fa-sparkles"></i>
+          Multimodal: Text · Files · Charts
+        </div>
+      </header>
+
+      <!-- Chat Container -->
+      <main class="chat-container">
+        <div id="chat-box" class="chat-box">
+          <div id="thinking" class="thinking-indicator">
+            <div class="message bot">
+              <div class="avatar bot-avatar">
+                <i class="fas fa-robot"></i>
+              </div>
+              <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <div class="controls">
+          <select id="language-select" class="select-lang">
+            <option value="english" selected>🌐 English</option>
+            <option value="kannada">🌐 Kannada</option>
+          </select>
+
+          <label class="file-upload-wrapper" for="pdf-input">
+            <div class="plus-icon">+</div>
+            <span id="file-name" class="file-name">Upload file</span>
+          </label>
+          <input type="file" id="pdf-input" accept=".pdf,.jpg,.jpeg,.png,.csv,.json,.xlsx" style="display:none">
+
+          <input type="text" id="user-input" placeholder="Ask anything or say what to create..." class="user-input">
+
+          <button onclick="sendMessage()" class="btn send-btn">
+            <i class="fas fa-paper-plane"></i> Send
+          </button>
+          <button onclick="window.location.href='/voice'" class="btn secondary-btn">
+            <i class="fas fa-microphone"></i> Speak
+          </button>
+          <button onclick="window.location.href='/liveVideo'" class="btn secondary-btn">
+            <i class="fas fa-video"></i> Live
+          </button>
+          <button onclick="window.location.href='/ollama_chat'" class="btn secondary-btn">
+            <i class="fas fa-comment-dots"></i> Offline
+          </button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- BRAIN GAME WIDGET -->
+  <div id="brain-game-widget" class="brain-game-widget">
+    <button id="brain-game-toggle" class="brain-game-toggle">
+      <span>🧠</span> Mind Game
+    </button>
+
+    <div id="brain-game-panel" class="brain-game-panel">
+      <div class="game-header">
+        <div class="game-header-title">
+          <i class="fas fa-brain"></i>
+          <span>Mind Trick Game</span>
+        </div>
+        <button id="brain-game-close" class="game-close-btn">&times;</button>
+      </div>
+      <div class="game-body">
+        <p id="game-question">Tap "Start" to get a tricky question.</p>
+        <div id="game-options" class="game-options"></div>
+        <button id="game-next-btn" class="game-main-btn">
+          ▶ Start
+        </button>
+        <p id="game-feedback" class="game-feedback"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+
+    let lastUserQuery = "";
+    let uploadedFile = null;
+    let currentSessionId = null;
+    let sessions = [];
+    let currentMessageBlock = null;
+
+    // File upload handler
+    document.getElementById("pdf-input").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      uploadedFile = file;
+      document.getElementById("file-name").textContent = file ? file.name : "Upload file";
+    });
+
+    // Enter key handler
+    document.getElementById("user-input").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    });
+
+    function showThinkingIndicator() {
+      document.getElementById("thinking").classList.add("active");
+      scrollToBottom();
+    }
+
+    function hideThinkingIndicator() {
+      document.getElementById("thinking").classList.remove("active");
+    }
+
+    function scrollToBottom() {
+      const chatBox = document.getElementById("chat-box");
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function sendMessage(message = null) {
+      const input = document.getElementById("user-input");
+      const fileInput = document.getElementById("pdf-input");
+      const file = fileInput.files[0];
+      const chatBox = document.getElementById("chat-box");
+
+      message = message || input.value.trim();
+      if (!message && !file) return;
+
+      lastUserQuery = message || "Summarize this file";
+      const lang = document.getElementById("language-select").value;
+
+      // Add user message
+      const userWrapper = document.createElement("div");
+      userWrapper.className = "message-wrapper user-block";
+
+      currentMessageBlock = userWrapper;
+
+      userWrapper.innerHTML = `
+        <div class="message user">
+          <div class="avatar user-avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="message-content">
+            ${lastUserQuery}
+            ${file ? `<div class="file-badge">📄 ${file.name}</div>` : ''}
+          </div>
+        </div>
+      `;
+      chatBox.insertBefore(userWrapper, document.getElementById("thinking"));
+
+      input.value = "";
+
+      showThinkingIndicator();
+
+      const formData = new FormData();
+      formData.append("message", message);
+      formData.append("language", lang);
+      if (file) formData.append("file", file);
+
+      try {
+        const res = await fetch("/chat", { method: "POST", body: formData });
+        const data = await res.json();
+
+        hideThinkingIndicator();
+
+        const htmlReply = marked.parse(data.reply || "No response from AI");
+
+        const botWrapper = document.createElement("div");
+        botWrapper.className = "message-wrapper";
+        botWrapper.innerHTML = `
+          <div class="message bot">
+            <div class="avatar bot-avatar">
+              <i class="fas fa-robot" style="color: var(--accent);"></i>
+            </div>
+            <div class="message-content">${htmlReply}</div>
+          </div>
+        `;
+        chatBox.insertBefore(botWrapper, document.getElementById("thinking"));
+
+        const actionsDiv = document.createElement("div");
+        actionsDiv.className = "bot-actions";
+        actionsDiv.innerHTML = `
+          <button class="action-btn" onclick="downloadPDF()">
+            <i class="fas fa-file-pdf"></i> PDF
+          </button>
+          <button class="action-btn" onclick="getYoutubeLink()">
+            <i class="fas fa-youtube"></i> YouTube
+          </button>
+          <button class="action-btn" onclick="getFlowchart()">
+            <i class="fas fa-project-diagram"></i> Flowchart
+          </button>
+          <button class="action-btn" onclick="getSummary()">
+            <i class="fas fa-list"></i> Summary
+          </button>
+          <button class="action-btn" onclick="generateGraph()">
+            <i class="fas fa-chart-line"></i> Graph
+          </button>
+        `;
+        chatBox.insertBefore(actionsDiv, document.getElementById("thinking"));
+
+        const chartOptionsDiv = document.createElement("div");
+        chartOptionsDiv.className = "chart-options";
+        chartOptionsDiv.id = "chart-options";
+        chartOptionsDiv.innerHTML = `
+          <select id="chart-type">
+            <option value="bar" selected>Bar Chart</option>
+            <option value="pie">Pie Chart</option>
+            <option value="line">Line Chart</option>
+          </select>
+          <select id="chart-sort">
+            <option value="none" selected>No Sorting</option>
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
+          <input type="number" id="min-range" placeholder="Min value">
+          <input type="number" id="max-range" placeholder="Max value">
+        `;
+        chatBox.insertBefore(chartOptionsDiv, document.getElementById("thinking"));
+
+        document.getElementById("chart-type").addEventListener("change", autoGenerateGraph);
+        document.getElementById("chart-sort").addEventListener("change", autoGenerateGraph);
+        document.getElementById("min-range").addEventListener("input", autoGenerateGraph);
+        document.getElementById("max-range").addEventListener("input", autoGenerateGraph);
+
+        scrollToBottom();
+
+        if (!file) {
+          fileInput.value = "";
+          document.getElementById("file-name").textContent = "Upload file";
+        }
+
+      } catch (err) {
+        hideThinkingIndicator();
+        console.error("Error:", err);
+        const errorWrapper = document.createElement("div");
+        errorWrapper.className = "message-wrapper";
+        errorWrapper.innerHTML = `
+          <div class="message bot">
+            <div class="avatar bot-avatar">
+              <i class="fas fa-robot" style="color: var(--accent);"></i>
+            </div>
+            <div class="message-content" style="color: #ff6b6b;">
+              <i class="fas fa-exclamation-triangle"></i> Error: ${err.message}
+            </div>
+          </div>
+        `;
+        chatBox.insertBefore(errorWrapper, document.getElementById("thinking"));
+        scrollToBottom();
+      }
+    }
+
+    function downloadPDF() {
+      window.location.href = "/generate_pdf";
+    }
+
+    async function getYoutubeLink() {
+      showThinkingIndicator();
+      const res = await fetch("/get_youtube", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: lastUserQuery })
+      });
+      const data = await res.json();
+      hideThinkingIndicator();
+      if (data.link) window.open(data.link, "_blank");
+    }
+
+    async function getFlowchart() {
+      showThinkingIndicator();
+      const res = await fetch("/get_flowchart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: lastUserQuery })
+      });
+      const data = await res.json();
+      hideThinkingIndicator();
+
+      const chatBox = document.getElementById("chat-box");
+      const botWrapper = document.createElement("div");
+      botWrapper.className = "message-wrapper";
+
+      if (data.status === "not_flowchart") {
+        botWrapper.innerHTML = `
+          <div class="message bot">
+            <div class="avatar bot-avatar">
+              <i class="fas fa-robot" style="color: var(--accent);"></i>
+            </div>
+            <div class="message-content">${data.message}</div>
+          </div>
+        `;
+        chatBox.insertBefore(botWrapper, document.getElementById("thinking"));
+      } else {
+        botWrapper.innerHTML = `
+          <div class="message bot">
+            <div class="avatar bot-avatar">
+              <i class="fas fa-robot" style="color: var(--accent);"></i>
+            </div>
+            <div class="message-content">
+              <strong>Flowchart:</strong>
+              <div class="mermaid">${data.flowchart}</div>
+            </div>
+          </div>
+        `;
+        chatBox.insertBefore(botWrapper, document.getElementById("thinking"));
+        mermaid.init();
+      }
+
+      scrollToBottom();
+    }
+
+    async function getSummary() {
+      showThinkingIndicator();
+      const res = await fetch("/get_summary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: lastUserQuery })
+      });
+      const data = await res.json();
+      hideThinkingIndicator();
+
+      const chatBox = document.getElementById("chat-box");
+      const botWrapper = document.createElement("div");
+      botWrapper.className = "message-wrapper";
+      botWrapper.innerHTML = `
+        <div class="message bot">
+          <div class="avatar bot-avatar">
+            <i class="fas fa-robot" style="color: var(--accent);"></i>
+          </div>
+          <div class="message-content">
+            <strong>Summary:</strong><br>
+            ${marked.parse(data.summary || "No summary available")}
+          </div>
+        </div>
+      `;
+      chatBox.insertBefore(botWrapper, document.getElementById("thinking"));
+      scrollToBottom();
+    }
+
+    async function generateGraph() {
+      if (!uploadedFile) {
+        alert("Please upload a CSV or Excel file first!");
+        return;
+      }
+
+      showThinkingIndicator();
+
+      const chartType = document.getElementById("chart-type").value;
+      const chartSort = document.getElementById("chart-sort").value;
+      const minRange = document.getElementById("min-range").value;
+      const maxRange = document.getElementById("max-range").value;
+
+      const formData = new FormData();
+      formData.append("file", uploadedFile);
+      formData.append("chart_type", chartType);
+      formData.append("sort_order", chartSort);
+      formData.append("range_min", minRange);
+      formData.append("range_max", maxRange);
+
+      try {
+        const res = await fetch("/generate_graph", { method: "POST", body: formData });
+        const data = await res.json();
+        hideThinkingIndicator();
+
+        let chartContainer = currentMessageBlock.querySelector(".chart-display");
+
+        if (!chartContainer) {
+          chartContainer = document.createElement("div");
+          chartContainer.className = "chart-display";
+          currentMessageBlock.appendChild(chartContainer);
+        }
+
+        chartContainer.innerHTML = "";
+
+        if (data.chart) {
+          const img = document.createElement("img");
+          img.src = `data:image/png;base64,${data.chart}`;
+          img.alt = "Generated Graph";
+          chartContainer.appendChild(img);
+        } else {
+          chartContainer.innerHTML =
+            `<div style="color:#ff6b6b;">${data.error || "Failed to generate graph!"}</div>`;
+        }
+
+        scrollToBottom();
+
+      } catch (err) {
+        hideThinkingIndicator();
+        console.error(err);
+        alert("Error generating graph: " + err.message);
+      }
+    }
+
+    function autoGenerateGraph() {
+      if (uploadedFile) {
+        generateGraph();
+      }
+    }
+
+    async function loadSessions() {
+      const res = await fetch("/get_sessions");
+      const data = await res.json();
+
+      if (data.status === "ok") {
+        sessions = data.sessions;
+        const list = document.getElementById("sessions-list");
+        list.innerHTML = "";
+
+        data.sessions.forEach((s) => {
+          const item = document.createElement("div");
+          item.className = "session-item";
+          if (currentSessionId === s.session_id) {
+            item.classList.add("active");
+          }
+          item.textContent = new Date(s.created_at).toLocaleString();
+          item.addEventListener("click", (event) => {
+            currentSessionId = s.session_id;
+            loadChatHistory(s.session_id, event);
+          });
+          list.appendChild(item);
+        });
+      }
+    }
+
+    async function loadChatHistory(session_id, evt) {
+      const chatBox = document.getElementById("chat-box");
+      const thinking = document.getElementById("thinking");
+      chatBox.innerHTML = "";
+      chatBox.appendChild(thinking);
+
+      const res = await fetch(`/get_history/${session_id}`);
+      const data = await res.json();
+
+      if (data.status === "ok") {
+        data.history.forEach((chat) => {
+          const wrapper = document.createElement("div");
+          wrapper.className = "message-wrapper";
+          wrapper.innerHTML = `
+            <div class="message user">
+              <div class="avatar user-avatar"><i class="fas fa-user"></i></div>
+              <div class="message-content">${chat.user_message}</div>
+            </div>
+          `;
+          chatBox.insertBefore(wrapper, thinking);
+
+          const botWrapper = document.createElement("div");
+          botWrapper.className = "message-wrapper";
+          botWrapper.innerHTML = `
+            <div class="message bot">
+              <div class="avatar bot-avatar"><i class="fas fa-robot" style="color: var(--accent);"></i></div>
+              <div class="message-content">${chat.bot_reply}</div>
+            </div>
+          `;
+          chatBox.insertBefore(botWrapper, thinking);
+        });
+      }
+
+      document.querySelectorAll(".session-item").forEach(item => {
+        item.classList.remove("active");
+      });
+      if (evt && evt.currentTarget) {
+        evt.currentTarget.classList.add("active");
+      }
+
+      scrollToBottom();
+    }
+
+    async function newChat() {
+      const res = await fetch("/new_chat", { method: "POST" });
+      const data = await res.json();
+      if (data.status === "ok") {
+        currentSessionId = data.session_id;
+        const chatBox = document.getElementById("chat-box");
+        const thinking = document.getElementById("thinking");
+        chatBox.innerHTML = "";
+        chatBox.appendChild(thinking);
+        loadSessions();
+      }
+    }
+
+    /* BRAIN GAME LOGIC */
+
+    const brainGameQuestions = [
+      {
+        question: "A rooster lays an egg on the very top of a sloped roof. Which side will the egg roll down?",
+        options: ["Left side", "Right side", "Neither side"],
+        correct: 2,
+        explanation: "Roosters don’t lay eggs at all – only hens do!"
+      },
+      {
+        question: "What gets wetter the more it dries?",
+        options: ["A sponge", "A towel", "Rain"],
+        correct: 1,
+        explanation: "A towel gets wetter as it dries you."
+      },
+      {
+        question: "You see a boat filled with people, but there isn’t a single person on board. How is that possible?",
+        options: ["They are all under deck", "They are all married", "It’s an empty ghost ship"],
+        correct: 1,
+        explanation: "There isn’t a *single* person – they are all married."
+      },
+      {
+        question: "If you have it, you want to share it. If you share it, you no longer have it. What is it?",
+        options: ["Love", "Money", "A secret"],
+        correct: 2,
+        explanation: "Once you share a secret, it’s no longer just yours."
+      },
+      {
+        question: "Which is heavier: 1 kg of iron or 1 kg of cotton?",
+        options: ["Iron", "Cotton", "Both are same"],
+        correct: 2,
+        explanation: "Both weigh 1 kg – only the volume feels different."
+      }
+    ];
+
+    let gameCurrentIndex = null;
+    let gameState = "idle"; // 'idle' | 'question' | 'answered'
+    let gameSelectedOption = null;
+
+    function initBrainGame() {
+      const toggleBtn = document.getElementById("brain-game-toggle");
+      const panel = document.getElementById("brain-game-panel");
+      const closeBtn = document.getElementById("brain-game-close");
+      const nextBtn = document.getElementById("game-next-btn");
+
+      toggleBtn.addEventListener("click", () => {
+        panel.classList.toggle("active");
+      });
+
+      closeBtn.addEventListener("click", () => {
+        panel.classList.remove("active");
+      });
+
+      nextBtn.addEventListener("click", handleGameNext);
+    }
+
+    function renderGameQuestion() {
+      const qIndex = Math.floor(Math.random() * brainGameQuestions.length);
+      gameCurrentIndex = qIndex;
+      gameState = "question";
+      gameSelectedOption = null;
+
+      const qObj = brainGameQuestions[qIndex];
+      const qEl = document.getElementById("game-question");
+      const optionsEl = document.getElementById("game-options");
+      const feedbackEl = document.getElementById("game-feedback");
+      const nextBtn = document.getElementById("game-next-btn");
+
+      qEl.textContent = qObj.question;
+      optionsEl.innerHTML = "";
+      feedbackEl.textContent = "";
+      feedbackEl.className = "game-feedback";
+
+      qObj.options.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "game-option-btn";
+        btn.textContent = opt;
+        btn.dataset.index = idx;
+        btn.addEventListener("click", (e) => {
+          document.querySelectorAll(".game-option-btn").forEach(b => b.classList.remove("selected"));
+          e.currentTarget.classList.add("selected");
+          gameSelectedOption = parseInt(e.currentTarget.dataset.index);
+        });
+        optionsEl.appendChild(btn);
+      });
+
+      nextBtn.textContent = "✅ Submit";
+    }
+
+    function handleGameNext() {
+      const feedbackEl = document.getElementById("game-feedback");
+      const nextBtn = document.getElementById("game-next-btn");
+
+      if (gameState === "idle" || gameState === "answered") {
+        renderGameQuestion();
+        return;
+      }
+
+      if (gameState === "question") {
+        if (gameSelectedOption === null) {
+          feedbackEl.textContent = "Select an answer first 😄";
+          feedbackEl.className = "game-feedback wrong";
+          return;
+        }
+
+        const qObj = brainGameQuestions[gameCurrentIndex];
+
+        if (gameSelectedOption === qObj.correct) {
+          feedbackEl.textContent = "Correct! 🎉 " + qObj.explanation;
+          feedbackEl.className = "game-feedback correct";
+        } else {
+          feedbackEl.textContent = "Nice try! ❌ " + qObj.explanation;
+          feedbackEl.className = "game-feedback wrong";
+        }
+
+        gameState = "answered";
+        nextBtn.textContent = "➡ Next Trick";
+      }
+    }
+
+    window.onload = () => {
+      loadSessions();
+      initBrainGame();
+    };
+  </script>
+</body>
+
+</html>
